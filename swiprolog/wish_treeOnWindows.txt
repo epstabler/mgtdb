@@ -1,0 +1,40 @@
+1.) Run or re-download setup.exe from www.cygwin.com
+*Default options should work fine but I'll specify them to be sure
+
+2.) Choose Installation Type:
+-Mark Install From Internet option
+
+3.) Choose Installation Directory:
+-Choose the same Root directory you did to install Cygwin, default is C:\cygwin
+-Mark All User option
+
+4.) Select Local Package Directory:
+-Suggest choosing the same directory setup.exe is in but you can put it somewhere else if you wish
+
+5.) Select Connection Type:
+-Mark Direct Connection option
+
+6.) Choose A Download Site:
+-Pick a download site from the list, shouldn't matter much which one
+
+7.)Select Packages:
+-You want to install the following packages
+xorg-server
+xinit
+xorg-docs
+*If you don't see the package while searching, click the category X11 to open the folder
+-Let it download and install the packages
+
+8.) Launch the Cygwin terminal
+-Enter the command 'startxwin'
+*This may take a while to process
+-You now should see a new window pop-up, it acts just like the Cygwin terminal but should work with wish_tree as seen in lecture
+-Can test quickly by entering the command 'wish' which should pop-up a new blank window
+
+-If you get the error message "startxwin: Another X server instance is running on DISPLAY :0 
+: Resource temporarily unavailable" it means X11 is already running.
+You can launch a new X11 window by right-clicking on the X icon on the task bar on the bottom right selecting Applications and then xterm
+
+
+Primarily used this website as a resource for this guide
+http://x.cygwin.com/docs/ug/cygwin-x-ug.html

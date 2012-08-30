@@ -1,0 +1,37 @@
+Created by: stabler@ucla.edu  Comments welcome.
+
+This parser is designed to compile with an OCaml installation that has
+labltk.  If your platform does not provide native compilation, use
+"make byte" instead of "make".
+
+If you have labltk installed, and your platform supports the OCaml
+native code compilation, for an example, type:
+   make
+   ./mgtdbp
+   the king knows which wine the queen prefers
+   h
+
+We have a few example grammars in this directory:
+   mg0.ml mg1.ml mg2.ml mg_ne.ml mg_nt.ml mg_nz.ml mg_xx.ml
+To use one of them, for example mg_xx.ml, execute:
+    newg mg_xx
+  this should copy mg_xx.ml to g0.ml and compile it
+- then start as described above
+
+To use your own grammar, yourg:
+- create yourg.ml
+  (compare mg0.ml, provided here)
+- then execute:
+    newg yourg
+  this should copy your grammar to g0.ml and compile it
+- then start as described above
+
+The minimum probability bound on derivations is specified in the
+last line of top.ml
+
+After compiling, to keep the executable and docs but remove intermediate files:
+   make clean
+
+To clean up everything and re-compile:
+   make realclean
+   make
