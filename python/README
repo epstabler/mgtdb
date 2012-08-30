@@ -4,12 +4,12 @@ http://nltk.org/install.html.
 
 Since NLTK wants Python 2.5-2.7 together with the Python Tkinter GUI,
 the implementation was done using 2.7.  (We are now porting this code
-to other versions of Python.
+to other versions of Python.)
 
 Using NLTK installed under Python 2.7, you can start the parser by
 typing, in a terminal window:
          python mgtdbp-dev.py
-Actually, For line mode editing, you can start the parser with: 
+Actually, for line mode editing, it is more convenient to start with:
          rlwrap python mgtdbp-dev.py
 But that command will cause the program to explain that parsing begins
 only when given a grammar, a start category, and a minimum
