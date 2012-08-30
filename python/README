@@ -1,0 +1,28 @@
+We use the NLTK http://www.nltk.org/ environment mainly so we can use
+the display tools.  See the NLTK installation instructions
+http://nltk.org/install.html.
+
+Since NLTK wants Python 2.5-2.7 together with the Python Tkinter GUI,
+the implementation was done using 2.7.  (We are now porting this code
+to other versions of Python.
+
+Using NLTK installed under Python 2.7, you can start the parser by
+typing, in a terminal window:
+         python mgtdbp-dev.py
+Actually, For line mode editing, you can start the parser with: 
+         rlwrap python mgtdbp-dev.py
+But that command will cause the program to explain that parsing begins
+only when given a grammar, a start category, and a minimum
+probability, so you should really use a command like this:
+         rlwrap python mgtdbp.py mg0 C 0.0001
+This starts the loop given by the command at the bottom of mgtdbp.py,
+using grammar mg0.py, with start category C, and throwing out all parses
+with probability lower than 0.0001.
+Python will then prompt you for a sentence to parse with the grammar
+specified in your command line.
+So if the grammar is mg0, as above, you could type one of:
+         the king prefers the beer
+         which queen says the king knows which wine the queen prefers
+Then you will be given a prompt to which you can type
+         h
+to get a list of the options.
