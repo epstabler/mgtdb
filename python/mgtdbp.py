@@ -1015,12 +1015,21 @@ def go1(lex,start,minP): # initialize and begin
 
 def goLoop(g,gA,iq,minP):
     new_iq = iq[:]
-    ans = raw_input(': ')
-    inpt = ans.split()
-    print 'inpt =',inpt
-    dq = [(-1.0,inpt,new_iq,[[]])]
-    heapq.heapify(dq)
-    go2(g,gA,iq,minP,dq)
+    inpt = '  '
+    while len(inpt)>0 and inpt[0] != 'q':
+        ans = raw_input(': ')
+        inpt = ans.split()
+        if len(inpt)>0 and inpt[0] == 'q':
+            sys.exit()
+        elif len(inpt)>0 and inpt[0] == 'l':
+            TreeView(list2nltktree(['.']+lexArrays2stringTrees(gA)))
+        elif len(inpt)>0 and inpt[0] == 'pl':
+            showGrammar(g)
+        else:
+            dq = [(-1.0,inpt,new_iq,[[]])]
+            heapq.heapify(dq)
+            go2(g,gA,iq,minP,dq)
+    sys.exit()
 
 def go2(g,gA,iq,minP,dq):
     t0 = time.time()
