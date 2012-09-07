@@ -1,5 +1,3 @@
-Created by: stabler@ucla.edu  Comments welcome.
-
 This parser is designed to compile with an OCaml installation that has
 labltk.  If your platform does not provide native compilation, use
 "make byte" instead of "make".
@@ -35,3 +33,5 @@ After compiling, to keep the executable and docs but remove intermediate files:
 To clean up everything and re-compile:
    make realclean
    make
+
+Comments welcome: stabler@ucla.edu  
