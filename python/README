@@ -1,8 +1,6 @@
-This directory contains files for a Python 2.x/NLTK implementation
-of the parser.
-
-The python3 subdirectory has the similar files for Python 3.x together
-with a port of the NLTK drawing tools to Python 3.x.
+This directory contains files for a Python 2.x/NLTK implementation of
+the parser. The python3 subdirectory has the similar files for Python
+3.x together with a port of the NLTK drawing tools to Python 3.x.
 
 NLTK http://www.nltk.org/ works with Python 2.7, and we began with
 that environment mainly to make use of their tree display tools.
