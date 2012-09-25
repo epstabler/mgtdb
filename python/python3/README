@@ -1,7 +1,8 @@
 Code for this initial commit, 2012-09-25, contributed by Erik Arrieta.
 
 This directory contains a Python 3.x implementation of the parser,
-together with a port of the NLTK tree drawing tools.
+together with a port of the NLTK tree drawing tools. These tools
+require Tkinter.
 
 Using Python 3.3, you can start the parser by typing, in a terminal window:
          python3.3 mgtdbp-dev.py
