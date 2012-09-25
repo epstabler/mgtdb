@@ -1,19 +1,32 @@
 module Grammar
        where
 
-import Data.List
 import Data.Maybe
-import Debug.Trace
+import Data.List
+import qualified Data.Vector as V --can be gotten from hackage/cabal
 
 {- Grammar
-  Definitions of features, grammar, and output
-  copy pasted, will neeed to improve
+  Definitions and output methods of Features, Grammar
 -}
-data Feature = Sel String | Cat String | Neg String | Pos String deriving (Eq, Read, Show)
 
-type LexItem = ([String],[Feature])
-type Grammar = [([String],[Feature])]
+data Feature = Sel String
+             | Cat String
+             | Neg String
+             | Pos String
+             deriving (Eq, Read, Show)
 
+type LexItem = ( [String], [Feature] )
+type Grammar = [ ([String], [Feature]) ]
+
+data StrTree = T String [StrTree] deriving (Show, Eq)
+data LexTree =  EmptyTree
+              | Node (Int,Int) [LexTree]
+              | Leaf [String]
+              deriving (Show, Read, Eq)
+
+type LexTrees = V.Vector [LexTree]
+
+-- Sample Grammars
 mg0 = [
   ([],[Sel "V", Cat "C"]),
   ([],[Sel "V", Pos "wh", Cat "C"]),
@@ -29,6 +42,7 @@ mg0 = [
   (["drinks"],[Sel "D", Sel "D", Cat "V"])
   ]
 
+-- copy language with a and b
 mgxx = [ 
   ([],[Cat "T", Neg "r", Neg "l"]),
   ([],[Sel "T", Pos "r", Pos "l", Cat "T"]),
@@ -38,150 +52,226 @@ mgxx = [
   (["b"],[Sel "B", Pos "l", Cat "T", Neg "l"])
   ]
 
-btfyFeature :: Feature -> String
-btfyFeature (Cat a) = a
-btfyFeature (Sel a) = "=" ++ a
-btfyFeature (Neg a) = "-" ++ a
-btfyFeature (Pos a) = "+" ++ a
+mg1 =[
+  ([], [Sel "T", Cat "C"]),
+  ([], [Sel "T", Pos "wh", Cat "C"]),
+  ([], [Sel "v", Pos "k", Cat "T"]),
+  ([], [Sel "V", Sel "D", Cat "v"]),
+  (["eats"], [Sel "D", Pos "k", Cat "V"]),
+  (["laughs"], [Cat "V"]),
+  (["the"], [Sel "N", Cat "D", Neg "k"]),
+  (["which"], [Sel "N", Cat "D", Neg "k", Neg "wh"]),
+  (["king"], [Cat "N"]),
+  (["pie"], [Cat "N"])
+  ]
 
--- btfyFeature (Pos "wh") 
+{- simple SOV grammar with wh movement
+True Examples
+recognize mg1 "C" 0.0000000001 ["the","king","laughs"]
+recognize mg1 "C" 0.0000000001 ["the","king","the","pie","eats"]
+recognize mg1 "C" 0.0000000001 ["which","pie","the","king","eats"]
+False Examples
+recognize mg1 "C" 0.0000000001 ["the","king","the","pie","laughs"]
+recognize mg1 "C" 0.0000000001 ["the","king","pie","eats"]
+recognize mg1 "C" 0.0000000001 ["which","pie","the","king","eats","the","pie"]
+-}
 
-btfyLexItem :: LexItem -> String
-btfyLexItem (ss,fs) =
+mg2 =[
+  ([],[Sel "T",Cat "C"]),
+  ([],[Sel "T",Pos "wh",Cat "C"]),
+  (["PRES"],[Sel "v",Pos "eppD",Cat "T"]),
+  ([],[Sel "V",Sel "D",Cat "v"]),        -- "little v" introduces the subject
+  (["PREFER"],[Sel "D",Cat "V"]),
+  (["KNOW"],[Sel "C",Cat "V"]),
+  (["LAUGH"],[Cat "V"]),
+  (["which"],[Sel "Num",Cat "D",Neg "wh"]),
+  (["SG"],[Sel "N",Cat "Num"]),
+  (["PL"],[Sel "N",Cat "Num"]),
+  (["KING"],[Cat "N"]),
+  (["QUEEN"],[Cat "N"]),
+  (["WINE"],[Cat "N"]),
+  (["BEER"],[Cat "N"]),             -- Neg "D" should always be available for epp
+  (["this"],[Sel "Num",Cat "D"]),   (["this"],[Sel "Num",Cat "D",Neg "eppD"]),
+  (["these"],[Sel "Num",Cat "D"]),  (["these"],[Sel "Num",Cat "D",Neg "eppD"]),
+  (["MARY"],[Cat "D"]),             (["MARY"],[Cat "D",Neg "eppD"]),
+  (["JOHN"],[Cat "D"]),             (["JOHN"],[Cat "D",Neg "eppD"]),
+  (["DENMARK"],[Cat "D"]),          (["DENMARK"],[Cat "D",Neg "eppD"]),
+  (["SUNDAY"],[Cat "D"]),           (["SUNDAY"],[Cat "D",Neg "eppD"])
+  ]
+
+{-
+    mg2 Examples
+    let s = ["these","PL","KING","PRES","PREFER","this","SG","BEER"] in
+    recognize mg2 "C" 0.0000000001 s
+    --following are false (they require additional adjunction rules)
+    let s = ["these","PL","KING","PRES","PREFER","this","SG","DARK","BEER"] in
+    recognize mg2 "C" 0.0000000001 s
+    let s = ["these","PL","KING","PRES","PREFER","this","SG","DARK","DARK","BEER"] in
+    recognize mg2 "C" 0.0000000001 s
+    let s = ["these","PL","KING","PRES","PREFER","this","SG","DARK","BEER","on","SUNDAY"] in
+    recognize mg2 "C" 0.0000000001
+-}
+
+{-
+  ============================== BEGIN FUNCTIONS ==============================
+-}
+
+{-
+  Returns a printable and readable string of a Feature
+-}
+featureToStr :: Feature -> String
+featureToStr feature = case feature of (Cat a) -> a
+                                       (Sel a) -> "=" ++ a
+                                       (Neg a) -> "-" ++ a
+                                       (Pos a) -> "+" ++ a
+
+-- featureToStr (Pos "wh") 
+
+{-
+  Returns a printable and readable string of a LexItem
+-}
+lexItemToStr :: LexItem -> String
+lexItemToStr (ss,fs) =
   (foldl (\x -> (\y -> x ++ " " ++ y)) "" ss) ++ "::" ++
-  (foldl (\y -> (\x -> y ++ " " ++ (btfyFeature x))) "" fs)
+  (foldl (\y -> (\x -> y ++ " " ++ (featureToStr x))) "" fs)
 
--- btfyLexItem (["drinks"],[Sel "D", Sel "D", Cat "V"])
+-- lexItemToStr (["drinks"],[Sel "D", Sel "D", Cat "V"])
 
-spacedStr2 :: [String] -> String
-spacedStr2 [] = "e"
-spacedStr2 strs = foldl1 (\x y -> x ++ " " ++ y) strs
-
--- list of features into a string
+{-
+  Strings the printable, readable,
+  strings into a single string,
+  which are separated by spaces.
+-}
 stringFs :: [Feature] -> String
 stringFs [] = ""
-stringFs feats = foldl1 (\x y -> x ++ " " ++ y) (map btfyFeature feats)
+stringFs feats = foldl1 (\x y -> x ++ " " ++ y) (map featureToStr feats)
 
+-- stringFs [Sel "T", Pos "r", Pos "l", Cat "T"]
+
+{-
+  Delimits a list of strings and cats them into a single string.
+    For our purposes,
+    this returns "e" if the list of strings is empty.
+-}
+delimitStr :: String -> [String] -> String
+delimitStr _ [] = "e"
+delimitStr delim strs = foldl1 (\x y -> x ++ delim ++ y) strs
+
+-- delimitStr " Bar! " ["Foo?","Foo?","Foobar."]
 -- stringFs (snd (head mg0))
 
-{- write a function to list all the elements of a grammar, using btfyLexitem -}
-btfyGrammar :: Grammar -> String
-btfyGrammar [] = ""
-btfyGrammar (h:t) = btfyLexItem(h) ++ "\n" ++ btfyGrammar(t) 
+{-
+  The grammar in a printable string.
+-}
+grammarToStr :: Grammar -> String
+grammarToStr [] = ""
+grammarToStr (h:t) = lexItemToStr(h) ++ "\n" ++ grammarToStr(t) 
 
--- putStr (btfyGrammar(mg0))
-
-data StrTree = T String [StrTree] deriving Show
-
-t = T ">" [T "Mary" [],T "<" [T "praises" [],T "John" []]]
-
-data LexTree =  EmptyTree | Node (Maybe Int,Maybe Int) [LexTree] | Leaf [String] deriving (Show, Read, Eq)
-
-instance Ord LexTree where
-  Node _ ts1 <= Node _ ts2 = length ts1 <= length ts2
-  Leaf _ <= Node _ _ = True
-  Node _ _ <= Leaf _ = False  
-  Leaf str1 <= Leaf str2 = str1 <= str2
-  EmptyTree <= _ = True
-  _ <= EmptyTree = False
+-- putStr (grammarToStr(mg0))
 
 {-
-  Utility function using built in elemIndex to be able to be used with map.
+  Map the rule (the strings of the features) to Ints using our mapped indexes.
 -}
-elemIndex' :: (Eq a) => [a] -> a -> (Maybe Int)
-elemIndex' list elem = elemIndex elem list
-
-{-
-  Map the rule (the strings of the features) to Maybe Int values using our mapped indexes.
--}
-mapRule :: [String] -> [String] -> [Maybe Int]
-mapRule mappedFStrs fStrs = map (elemIndex' mappedFStrs) fStrs
+mapRule :: [String] -> [String] -> [Int]
+mapRule mappedFStrs fStrs =
+  let elemIndex' list elem = fromMaybe (-1) (elemIndex elem list) in
+  map (elemIndex' mappedFStrs) fStrs
 
 -- mapRule ["testcase","C","V"] ["V","C"]
--- Returns [Just 2, Just 1]
+-- [Just 2, Just 1]
 
 {-
-  Pattern match for LexTree Maybe Int Features
+  Pattern match for LexTree data
 -}
-getNodeValue :: LexTree -> (Maybe Int, Maybe Int)
-getNodeValue EmptyTree = (Nothing, Nothing)
-getNodeValue (Leaf _) = (Nothing, Nothing)
+getNodeValue :: LexTree -> (Int, Int)
 getNodeValue (Node val _) = val
+getNodeValue (Leaf _) = (-1,-1)
+getNodeValue EmptyTree = (-1,-1)
 
 -- getNodeValue (Node (Just 1, Just 0) [])
 -- Returns (Just 1, Just 0)
 
 {-
-  Takes a feature and returns the corresponding maybe int and the string associated with the feature.
+  Takes a feature and returns a tuple containing
+  the corresponding int and the string associated with the feature.
 -}
-featToMIntString :: Feature -> (Maybe Int, String)
-featToMIntString (Cat str) = (Just 0,str)
-featToMIntString (Sel str) = (Just 1,str)
-featToMIntString (Neg str) = (Just 2,str)
-featToMIntString (Pos str) = (Just 3,str)
+featToIntStr :: Feature -> (Int, String)
+featToIntStr (Cat str) = (0,str)
+featToIntStr (Sel str) = (1,str)
+featToIntStr (Neg str) = (2,str)
+featToIntStr (Pos str) = (3,str)
 
 {-
-  Take a label/word (LHS), list of mapped features from the rule (RHS), and a LexTree
-  to update the LexTree and returns that updated LexTree
+  Takes our mapped strings and a feature
+  and returns the string of the feature according to our mapped strings
 -}
-extendLexTree :: [String] -> [(Maybe Int,Maybe Int)] -> LexTree -> LexTree
-extendLexTree label [] EmptyTree = Node (Nothing,Nothing) [(Leaf label)] -- create tree
-extendLexTree label [] (Node val branches) -- leaf the tree
-  | elem (Leaf label) branches = Node val branches
-  | otherwise = Node val ((Leaf label):branches)
-extendLexTree label (n:ns) EmptyTree = Node (Nothing,Nothing) [extendLexTree label ns (Node n [])] -- create tree
-extendLexTree label (n:ns) (Node val []) = Node val [extendLexTree label ns (Node n [])] -- extend the tree
-extendLexTree label (n:ns) (Node val (b:bs)) -- decide to branch or extend depending if we find existing feature
-  | n == (getNodeValue b) = Node val ((extendLexTree label ns b):bs) -- if found, then dive
-  | otherwise = let (Node val2 bs2) = extendLexTree label (n:ns) (Node val bs)
-  in (Node val (b:bs2))
-
-{-
-  Goes through grammar and constructs a list of all the features (uniquely) and fills the LexTree from it
--}
-makeLexTree :: Grammar -> [String] -> LexTree -> ([String], LexTree)
-makeLexTree [] mfs tr = (mfs, tr)
-makeLexTree ((label,fs):rules) mfs tree = makeLexTree rules newMap (extendLexTree label ruleInMints tree)
-  where mIntStrings = map featToMIntString (reverse fs)
-        newMap = union mfs (reverse (map snd mIntStrings)) -- reverse is for debugging
-        ruleInMints = zip (map fst mIntStrings) (mapRule newMap (map snd mIntStrings))
-
-{-
-  Returns the string of the feature according to our mapping
--}
-fOfInts :: [String] -> (Maybe Int, Maybe Int) -> Feature
-fOfInts feats (Just f, Just n)
+fOfInts :: [String] -> (Int, Int) -> Feature
+fOfInts feats (f, n)
   | length feats < n - 1 = error "fOfInts: invalid index"
-  | f == 0 = Cat ((!!) feats n)
-  | f == 1 = Sel ((!!) feats n)
-  | f == 2 = Neg ((!!) feats n)
-  | f == 3 = Pos ((!!) feats n)
+  | f == -1 = Cat "."
+  | f == 0 = Cat (feats!!n)
+  | f == 1 = Sel (feats!!n)
+  | f == 2 = Neg (feats!!n)
+  | f == 3 = Pos (feats!!n)
   | otherwise = error ("fOfInts: invalid feature type: " ++ show f)
 
 {-
-  Returns the string of the feature according to our mapping
+  Take a label/word (LHS),
+  list of new mapped features from the rule (RHS),
+  and an initial LexTree,
+  
+  and updates with the new mapped features and the label
+  and returns that updated LexTree
+  
+  Note: extra lines are written for clarity
 -}
-mIntsToStr :: [String] -> (Maybe Int, Maybe Int) -> String
-mIntsToStr _ (_, Nothing) = ""
-mIntsToStr _ (Nothing, _) = ""
-mIntsToStr feats (Just f, Just n)
-  | f == 0 = btfyFeature (Cat ((!!) feats n))
-  | f == 1 = btfyFeature (Sel ((!!) feats n))
-  | f == 2 = btfyFeature (Neg ((!!) feats n))
-  | f == 3 = btfyFeature (Pos ((!!) feats n))
+extendLT :: [String] -> [(Int,Int)] -> LexTree -> LexTree
+extendLT label [] EmptyTree = Node (-1,-1) [(Leaf label)] -- create leaf
+extendLT label [] (Node val branches) -- leaf the tree
+  | elem (Leaf label) branches = Node val branches
+  | otherwise = Node val ((Leaf label):branches)
+extendLT label (n:ns) EmptyTree =
+  let branch = extendLT label ns (Node n []) in
+  Node (-1,-1) [branch] -- create tree
+extendLT label (n:ns) (Node val []) =
+  let branch = extendLT label ns (Node n []) in 
+  Node val [branch] -- extend the tree
+extendLT label (n:ns) (Node val (b:bs))
+  | n == (getNodeValue b) = -- if found, then descend tree
+    let descend = extendLT label ns b in
+    Node val (descend:bs)
+  | otherwise =
+    let (Node val2 bs2) = extendLT label (n:ns) (Node val bs) -- else branch
+    in (Node val (b:bs2))
 
+{-
+  Goes through grammar and constructs a list of all the features (uniquely)
+  and fills the LexTree from it by updating with each new rule (LexItem)
+  also returns a mapping of strings for the Ints used in the LexTree
+-}
+makeLT :: Grammar -> [String] -> LexTree -> ([String], LexTree)
+makeLT [] mfs tr = (mfs, tr)
+makeLT ((label,fs):rs) mfs tree = makeLT rs newMap (extendLT label iRules tree)
+  where iStrs  = map featToIntStr (reverse fs)
+        strs     = map snd iStrs
+        newMap   = union mfs (reverse strs) -- reverse for ordering
+        iRules = zip (map fst iStrs) (mapRule newMap strs)
+
+{-
+  ========== Some convert to readable forms functions for trees. ==========
+-}
 {- 
   Converts our LexTree into a Tree for print output
 -}
 lexTreeToTree :: ([String], LexTree) -> StrTree
 lexTreeToTree (feats,(Node val branches)) =
   T nodeString (map lexTreeToTree (map (\x -> (feats,x)) branches))
-  where nodeString = mIntsToStr feats val
+  where nodeString = featureToStr (fOfInts feats val)
 lexTreeToTree (feats,(Leaf labels)) = T (foldl (++) "" labels) []
 lexTreeToTree (_,EmptyTree) = T "" []
 
 {- convert the grammar to a tree -}
--- lexTreeToTree (makeLexTree mg0 [] EmptyTree)
+-- lexTreeToTree (makeLT mg0 [] EmptyTree)
 {- write a pretty printer, port tktree from ocaml -}
 
 ppTreeN :: Int -> StrTree -> String
@@ -193,4 +283,28 @@ ppTreeN n (T str branches) = "\n" ++ tabs ++
 ppTree :: StrTree -> IO()
 ppTree tree = putStr((ppTreeN 0 tree) ++ "\n")
 
--- ppTree (lexTreeToTree (makeLexTree mg0 [] EmptyTree))
+-- ppTree (lexTreeToTree (makeLT mg0 [] EmptyTree))
+
+{-
+  ========== Implementation functions ==========
+-}
+-- lextrees is a structure for faster processing with our original lextree
+makeILPair :: LexTree -> (Int, [LexTree])
+makeILPair (Node (_,v) bs) = (v,bs)
+makeILPair _ = error "makeILPair: LexTree is not a Node"
+
+-- this function can be rewritten later
+filterPairs :: Int -> [(Int, [LexTree])] -> [LexTree]
+filterPairs n [] = []
+filterPairs n ((i, ts):more) =
+  if i == n
+  then ts
+  else filterPairs n more
+
+-- future need to store the type
+makeLexTrees :: ([String], LexTree) -> LexTrees
+makeLexTrees (strMap,(Node _ bs)) = 
+  let size = length strMap in
+  let idxLexTPairs = map makeILPair bs in
+  V.fromList [ filterPairs x idxLexTPairs | x <- [0..(size-1)] ]
+makeLexTrees (_,_) = V.empty
