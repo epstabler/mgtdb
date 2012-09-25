@@ -1,0 +1,22 @@
+Code for this initial commit, 2012-09-25, contributed by Erik Arrieta.
+
+This directory contains a Python 3.x implementation of the parser,
+together with a port of the NLTK tree drawing tools.
+
+Using Python 3.x, you can start the parser by typing, in a terminal window:
+         python3.3 mgtdbp-dev.py
+Actually, For line mode editing, you can start the parser with: 
+         rlwrap python3.3 mgtdbp-dev.py
+But that will explain that parsing begins only when given a grammar, a
+start category, and a minimum probability, you should really use a
+command like this:
+         rlwrap python3.3 mgtdbp.py mg0 C 0.0001
+(This starts the loop given by the command at the bottom of mgtdbp.py.)
+Python will then prompt you for a sentence to parse with the grammar
+specified in your command line.
+So if the grammar is mg0, as above, you could type one of:
+         the king prefers the beer
+         which queen says the king knows which wine the queen prefers
+Then you will be given a prompt to which you can type
+         h
+to get a list of the options.

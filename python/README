@@ -1,23 +1,24 @@
-We use the NLTK http://www.nltk.org/ environment mainly so we can use
-the display tools.  See the NLTK installation instructions
-http://nltk.org/install.html.
+This directory contains files for a Python 2.x/NLTK implementation
+of the parser.
 
-Since NLTK wants Python 2.5-2.7 together with the Python Tkinter GUI,
-the implementation was done using 2.7.  (We are now porting this code
-to other versions of Python.)
+The python3 subdirectory has the similar files for Python 3.x together
+with a port of the NLTK drawing tools to Python 3.x.
 
-Using NLTK installed under Python 2.7, you can start the parser by
-typing, in a terminal window:
+NLTK http://www.nltk.org/ works with Python 2.7, and we began with
+that environment mainly to make use of their tree display tools.
+See the NLTK installation instructions if you want to have the full 
+NLTK environment: http://nltk.org/install.html.
+
+Using NLTK installed under Python 2.7, you can start the parser 
+with the files in this directory by typing, in a terminal window:
          python mgtdbp-dev.py
-Actually, for line mode editing, it is more convenient to start with:
+Actually, For line mode editing, you can start the parser with: 
          rlwrap python mgtdbp-dev.py
-But that command will cause the program to explain that parsing begins
-only when given a grammar, a start category, and a minimum
-probability, so you should really use a command like this:
+But that will explain that parsing begins only when given a grammar, a
+start category, and a minimum probability, you should really use a
+command like this:
          rlwrap python mgtdbp.py mg0 C 0.0001
-This starts the loop given by the command at the bottom of mgtdbp.py,
-using grammar mg0.py, with start category C, and throwing out all parses
-with probability lower than 0.0001.
+(This starts the loop given by the command at the bottom of mgtdbp.py.)
 Python will then prompt you for a sentence to parse with the grammar
 specified in your command line.
 So if the grammar is mg0, as above, you could type one of:
