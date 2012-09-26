@@ -2,7 +2,7 @@
   to exit ghci :quit 
   to load this file in ghci, :l mgtdb.hs 
 -}
-module MGTDB
+module MGTDB_Dev
        where
 import Data.Maybe
 import qualified Data.List as L -- for clarity
@@ -68,8 +68,7 @@ memberN f (lt:ltx) =
              (Node (_,g) _) -> if g == f then (True, lt) else memberN f ltx
 memberN _ [] = (False, EmptyTree)
 
-scan :: [String] -> [String] -> Movers -> VMvIdx -> [Deriv]
-  -> [Deriv]
+scan :: [String] -> [String] -> Movers -> VMvIdx -> [Deriv] -> [Deriv]
 scan word input m mx sofar =
   if V.and (V.map L.null m) -- checks if all movers are empty
   then let (ok, remainder) = prefixT (word,input) in
@@ -83,6 +82,9 @@ merge1 :: LexTrees -> [String] -> [LexTree] -> Int -> IdxCat -> Movers -> VMvIdx
 merge1 lts input terms i ((_,m),(hx,mx)) empt_m empt_mx sofar =
   if terms /= []
   then
+    if i > (V.length lts) - 1
+    then error ("merge1: index too large for lts" ++ "\n" ++ show i)
+    else
       (input, [((terms,empt_m),((hx++[0]),empt_mx)),
                ((((V.!) lts i),m),((hx++[1]),mx))
                ]):sofar
@@ -93,9 +95,12 @@ merge2 :: LexTrees -> [String] -> [LexTree] -> Int -> IdxCat -> Movers ->VMvIdx
 merge2 lts input nonterms i ((_,m),(hx,mx)) empt_m empt_mx sofar =
   if nonterms /= []
   then
-    ((input, [((nonterms,m),(hx++[1],mx)),
-              ((((V.!) lts i),empt_m),(hx++[0],empt_mx))
-              ]):sofar)
+   if i > (V.length lts) - 1
+     then error "merge2: index too large for lts"
+     else 
+      ((input, [((nonterms,m),(hx++[1],mx)),
+                ((((V.!) lts i),empt_m),(hx++[0],empt_mx))
+                ]):sofar)
   else sofar
 
 merge3 :: [String] -> [LexTree] -> Int -> IdxCat -> Int -> Int -> Movers
@@ -105,16 +110,19 @@ merge3 input terms i ((h,m),(hx,mx)) next stop empt_m empt_mx sofar =
   then
     let ic = ((h,m),(hx,mx)) in
     let continue = merge3 input terms i ic (next+1) stop empt_m empt_mx sofar in
-    let (ok,matchingTree) = memberN i ((V.!) m next) in
-    if ok
-    then
-      let ts  = subtreesOf matchingTree in
-      let tsx = (V.!) mx next in
-      let n = (V.//) m [(next,[])] in
-      let nx = (V.//) mx [(next,[])] in
-      (input,[((terms,empt_m),(hx,empt_mx)),
-              ((ts,n),(tsx,nx))]):continue
-    else continue
+    if next > (V.length m) - 1 || next > (V.length mx) - 1
+    then error "merge3: index too large for m or mx"
+    else
+      let (ok,matchingTree) = memberN i ((V.!) m next) in
+      if ok
+      then
+        let ts  = subtreesOf matchingTree in
+        let tsx = (V.!) mx next in
+        let n = (V.//) m [(next,[])] in
+        let nx = (V.//) mx [(next,[])] in
+        (input,[((terms,empt_m),(hx,empt_mx)),
+                ((ts,n),(tsx,nx))]):continue
+      else continue
   else sofar
 
 merge4 :: [String] -> [LexTree] -> Int -> IdxCat -> Int -> Int -> Movers
@@ -125,47 +133,56 @@ merge4 input nonterms i ((h,m),(hx,mx)) next stop empt_m empt_mx sofar =
     let ic = ((h,m),(hx,mx)) in
     let continue =
                 merge4 input nonterms i ic (next+1) stop empt_m empt_mx sofar in
-    let (ok,matchingTree) = memberN i ((V.!) m next) in
-    if ok
-    then
-      let ts = subtreesOf matchingTree in
-      let tsx = (V.!) mx next in
-      let n = (V.//) m [(next,[])] in
-      let nx = (V.//) mx [(next,[])] in
-      (input,[((nonterms,n),(hx,nx)),
-              ((ts,empt_m),(tsx,empt_mx))]):continue
-    else continue
+    if next > (V.length m) - 1 || next > (V.length mx) - 1
+    then error "merge4: index too large for m or mx"
+    else
+      let (ok,matchingTree) = memberN i ((V.!) m next) in
+      if ok
+      then
+        let ts = subtreesOf matchingTree in
+        let tsx = (V.!) mx next in
+        let n = (V.//) m [(next,[])] in
+        let nx = (V.//) mx [(next,[])] in
+        (input,[((nonterms,n),(hx,nx)),
+                ((ts,empt_m),(tsx,empt_mx))]):continue
+      else continue
   else sofar
 
 move1 :: LexTrees -> [String] -> [LexTree] -> Int -> IdxCat -> [Deriv]
   -> [Deriv]
 move1 lts input ts i ((_,m),(hx,mx)) sofar =
-  if ((V.!) m i) == []
-  then
-    let n = (V.//) m [(i,((V.!) lts i))] in
-    let nx = (V.//) mx [(i,(hx++[0]))] in
-    (input,[((ts,n),((hx++[1]),nx))]):sofar
-  else sofar
+  if i > (V.length lts) || i > (V.length m) - 1
+  then error "move1: index too large for lts or m"
+  else
+    if ((V.!) m i) == []
+    then
+      let n = (V.//) m [(i,((V.!) lts i))] in
+      let nx = (V.//) mx [(i,(hx++[0]))] in
+      (input,[((ts,n),((hx++[1]),nx))]):sofar
+    else sofar
 
 move2 :: [String] -> [LexTree] -> Int -> IdxCat -> Int -> Int -> [Deriv]
   -> [Deriv]
 move2 input ts i ((h,m),(hx,mx)) next stop sofar =
   if next < stop
   then
-    let continue = move2 input ts i ((h,m),(hx,mx)) (next+1) stop sofar in
-    let (ok,matchingTree) = memberN i ((V.!) m next) in
-    if ok
-    then
+    if next > (V.length m) - 1 || next > (V.length mx) - 1
+    then error "move2: index too large for m or mx"
+    else
+      let continue = move2 input ts i ((h,m),(hx,mx)) (next+1) stop sofar in
+      let (ok,matchingTree) = memberN i ((V.!) m next) in
       let (_,rootFeat) = getNodeValue matchingTree in
-      if rootFeat == next || ((V.!) m rootFeat) == []
-      then
-        let mts = subtreesOf matchingTree in
-        let mtsx = (V.!) mx next in
-        let n = (V.//) m [(next,[]),(rootFeat,mts)] in
-        let nx = (V.//) mx [(next,[]),(rootFeat,mtsx)] in
-        (input,[((ts,n),(hx,nx))]):continue
-      else continue
-    else continue
+      if rootFeat > (V.length m) - 1
+      then error "move2: index too large for m (rootFeat)"
+      else
+        if ok && (rootFeat == next || ((V.!) m rootFeat) == [])
+        then
+          let mts = subtreesOf matchingTree in
+          let mtsx = (V.!) mx next in
+          let n = (V.//) m [(next,[]),(rootFeat,mts)] in
+          let nx = (V.//) mx [(next,[]),(rootFeat,mtsx)] in
+          (input,[((ts,n),(hx,nx))]):continue
+        else continue
   else sofar
 
 expands :: Lexicon -> [String] -> IdxCat -> [Deriv] -> [Deriv]
@@ -203,6 +220,7 @@ pushICs q (ic:ics) =
   where minIdx (i,ax) = V.foldl
                          (\x ->(\y -> if y == [] then x else min x y)) i ax
 
+
 insertNewDerivs :: Float -> Float -> IQ -> DQ -> [Deriv] -> DQ
 insertNewDerivs _ _ _ dq [] = dq
 insertNewDerivs p new_p q dq ((input,ics):more) = case ics of
@@ -238,8 +256,7 @@ derive lex min dq =
         then let new_parses = insertNewDerivs p new_p pop_iq pop_dq xs in
           derive lex min new_parses
         else derive lex min pop_dq
-
--- Find any derivation
+    
 recognize :: Grammar -> String -> Float -> [String] -> Bool
 recognize gram start min input =
   let ltreeP    = makeLT gram [] EmptyTree in

@@ -113,7 +113,7 @@ mg2 =[
 -}
 
 {-
-  ============================== BEGIN FUNCTIONS ==============================
+  ============================== BEGIN FUNCTIONS ===============================
 -}
 
 {-
@@ -258,9 +258,10 @@ makeLT ((label,fs):rs) mfs tree = makeLT rs newMap (extendLT label iRules tree)
         iRules = zip (map fst iStrs) (mapRule newMap strs)
 
 {-
-  ========== Some convert to readable forms functions for trees. ==========
+  =========== Some convert to readable forms functions for trees. ==============
 -}
 {- 
+  --lexTreeToTree
   Converts our LexTree into a Tree for print output
 -}
 lexTreeToTree :: ([String], LexTree) -> StrTree
@@ -272,8 +273,8 @@ lexTreeToTree (_,EmptyTree) = T "" []
 
 {- convert the grammar to a tree -}
 -- lexTreeToTree (makeLT mg0 [] EmptyTree)
-{- write a pretty printer, port tktree from ocaml -}
 
+{- a pretty printer -}
 ppTreeN :: Int -> StrTree -> String
 ppTreeN n (T str branches) = "\n" ++ tabs ++
                              "T \"" ++ str ++ "\" [" ++ more ++ "]"
@@ -286,7 +287,7 @@ ppTree tree = putStr((ppTreeN 0 tree) ++ "\n")
 -- ppTree (lexTreeToTree (makeLT mg0 [] EmptyTree))
 
 {-
-  ========== Implementation functions ==========
+  ========================= Implementation functions ===========================
 -}
 -- lextrees is a structure for faster processing with our original lextree
 makeILPair :: LexTree -> (Int, [LexTree])
