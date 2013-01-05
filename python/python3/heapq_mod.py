@@ -8,6 +8,7 @@ to the needs of the derivation queue in the mgtdbp file. Functions that have
 not been used have been removed for efficiency's sake. Some of the comments
 from the original code remain for debugging purposes, and general knowledge.
 Modified by:  Erik Arrieta || Latest version: 9/12/12
+Modified by:  Ed Stabler || Latest version: 1/5/13
 """
 
 """Heap queue algorithm (a.k.a. priority queue).
@@ -138,7 +139,15 @@ def _siftup(heap, pos):
     while childpos < endpos:
         # Set childpos to index of smaller child.
         rightpos = childpos + 1
-        if rightpos < endpos and not heap[childpos] < heap[rightpos]:
+        if rightpos < endpos: # ES
+            if isinstance(heap[childpos],tuple) and isinstance(heap[rightpos],tuple): # ES
+                check0=heap[childpos][0] # ES only compare first elements of tuples
+                check1=heap[rightpos][0] # ES
+            else: # ES
+                check0=heap[childpos] # ES
+                check1=heap[rightpos] # ES
+        if rightpos < endpos and not check0 < check1: # ES
+#        if rightpos < endpos and not heap[childpos] < heap[rightpos]: # ES
             childpos = rightpos
         # Move the smaller child up.
         heap[pos] = heap[childpos]
