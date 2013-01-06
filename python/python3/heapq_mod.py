@@ -139,16 +139,13 @@ def _siftup(heap, pos):
     while childpos < endpos:
         # Set childpos to index of smaller child.
         rightpos = childpos + 1
+#       if rightpos < endpos and not heap[childpos] < heap[rightpos]: # ES catch tuple case here
         if rightpos < endpos: # ES
             if isinstance(heap[childpos],tuple) and isinstance(heap[rightpos],tuple): # ES
-                check0=heap[childpos][0] # ES only compare first elements of tuples
-                check1=heap[rightpos][0] # ES
-            else: # ES
-                check0=heap[childpos] # ES
-                check1=heap[rightpos] # ES
-        if rightpos < endpos and not check0 < check1: # ES
-#        if rightpos < endpos and not heap[childpos] < heap[rightpos]: # ES
-            childpos = rightpos
+                if not heap[childpos][0] < heap[rightpos][0]: # ES
+                    childpos = rightpos
+                elif not heap[childpos] < heap[rightpos]: # ES
+                    childpos = rightpos
         # Move the smaller child up.
         heap[pos] = heap[childpos]
         pos = childpos
