@@ -144,8 +144,8 @@ def _siftup(heap, pos):
             if isinstance(heap[childpos],tuple) and isinstance(heap[rightpos],tuple): # ES
                 if not heap[childpos][0] < heap[rightpos][0]: # ES
                     childpos = rightpos
-                elif not heap[childpos] < heap[rightpos]: # ES
-                    childpos = rightpos
+            elif not heap[childpos] < heap[rightpos]: # ES
+                childpos = rightpos
         # Move the smaller child up.
         heap[pos] = heap[childpos]
         pos = childpos
