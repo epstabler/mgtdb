@@ -1110,19 +1110,19 @@ def goLoop(g,gA,iq,minP):    #NLTK
             if len(ans)>0 and ans[0] == 'h':
                 hlp()
             elif len(ans)>0 and ans[0] == 'd':
-                list2nltktree(dt2t(dt)).draw()
+                TreeView(list2nltktree(dt2t(dt)))
             elif len(ans)>1 and ans[:2] == 'pd':
                 pptree(dt2t(dt))
             elif len(ans)>0 and ans[0] == 's':
-                list2nltktree(st2t(dt2st(dt))).draw()
+                TreeView(list2nltktree(st2t(dt2st(dt))))
             elif len(ans)>1 and ans[:2] == 'ps':
                 pptree(st2t(dt2st(dt)))
             elif len(ans)>0 and ans[0] == 'b':
-                list2nltktree(bt2t(dt2bt(dt))).draw()
+                TreeView(list2nltktree(bt2t(dt2bt(dt))))
             elif len(ans)>1 and ans[:2] == 'pb':
                 pptree(bt2t(dt2bt(dt)))
             elif len(ans)>0 and ans[0] == 'x':
-                list2nltktree(dt2xb(dt)).draw()
+                TreeView(list2nltktree(dt2xb(dt)))
             elif len(ans)>1 and ans[:2] == 'px':
                 pptree(dt2xb(dt))
             elif len(ans)>0 and ans[0] == 'n':
@@ -1136,7 +1136,7 @@ def goLoop(g,gA,iq,minP):    #NLTK
                 showGrammar(g)
                 print()
             elif len(ans)>0 and ans[0] == 'l':
-                list2nltktree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2])).draw()  #changed EA
+                TreeView(list2nltktree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2])))  #changed EA
             elif len(ans)>1 and ans[:2] == 'pl':
                 pptree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2]))   #changed EA
             elif len(ans)>0 and ans[0] == 'q':
@@ -1454,15 +1454,15 @@ http://docs.python.org/library/functions.html#__import__
 if len(sys.argv)!=4:
     print('\nFound ' + str(len(sys.argv)-1) + ' parameters but')
     print('3 parameters are required:')
-    print('    mgtdbp.py grammar startCategory minimumProbability\n')
+    print('    mgtdbp-dev.py grammar startCategory minimumProbability\n')
     print('For example:')
-    print('    python mgtdbp.py mg0 C 0.0001')
+    print('    python3 mgtdbp-dev.py mg0 C 0.0001')
     print('or:')
-    print('    python mgtdbp.py mgxx T 0.0000001\n')
+    print('    python3 mgtdbp-dev.py mgxx T 0.0000001\n')
     print('For line editing, you could use:')
-    print('    rlwrap python mgtdbp.py mg0 C 0.0001')
+    print('    rlwrap python3 mgtdbp-dev.py mg0 C 0.0001')
     print('or, if you have ipython:')
-    print('    ipython mgtdbp.py mg0 C 0.0001\n')
+    print('    ipython3 mgtdbp-dev.py mg0 C 0.0001\n')
     sys.exit()
 
 # from the grammar specified in sys.argv[1], the first commented line is the terminal usable version
