@@ -1110,19 +1110,19 @@ def goLoop(g,gA,iq,minP):    #NLTK
             if len(ans)>0 and ans[0] == 'h':
                 hlp()
             elif len(ans)>0 and ans[0] == 'd':
-                TreeView(list2nltktree(dt2t(dt)))
+                list2nltktree(dt2t(dt)).draw()
             elif len(ans)>1 and ans[:2] == 'pd':
                 pptree(dt2t(dt))
             elif len(ans)>0 and ans[0] == 's':
-                TreeView(list2nltktree(st2t(dt2st(dt))))
+                list2nltktree(st2t(dt2st(dt))).draw()
             elif len(ans)>1 and ans[:2] == 'ps':
                 pptree(st2t(dt2st(dt)))
             elif len(ans)>0 and ans[0] == 'b':
-                TreeView(list2nltktree(bt2t(dt2bt(dt))))
+                list2nltktree(bt2t(dt2bt(dt))).draw()
             elif len(ans)>1 and ans[:2] == 'pb':
                 pptree(bt2t(dt2bt(dt)))
             elif len(ans)>0 and ans[0] == 'x':
-                TreeView(list2nltktree(dt2xb(dt)))
+                list2nltktree(dt2xb(dt)).draw()
             elif len(ans)>1 and ans[:2] == 'px':
                 pptree(dt2xb(dt))
             elif len(ans)>0 and ans[0] == 'n':
@@ -1136,7 +1136,7 @@ def goLoop(g,gA,iq,minP):    #NLTK
                 showGrammar(g)
                 print()
             elif len(ans)>0 and ans[0] == 'l':
-                TreeView(list2nltktree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2])))  #changed EA
+                list2nltktree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2])).draw()  #changed EA
             elif len(ans)>1 and ans[:2] == 'pl':
                 pptree(['.']+lexArrays2stringTrees(gA[0],gA[1],gA[2]))   #changed EA
             elif len(ans)>0 and ans[0] == 'q':
